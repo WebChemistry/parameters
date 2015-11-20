@@ -1,0 +1,34 @@
+database:
+	dsn: 'mysql:host=127.0.0.1;dbname=parameter'
+	user: root
+	password:
+	options:
+		lazy: yes
+
+extensions:
+    params: WebChemistry\Parameters\DI\Extension
+    console: Kdyby\Console\DI\ConsoleExtension
+    events: Kdyby\Events\DI\EventsExtension
+    annotations: Kdyby\Annotations\DI\AnnotationsExtension
+    doctrine: Kdyby\Doctrine\DI\OrmExtension
+
+doctrine:
+    user: root
+    password:
+    dbname: parameter
+    driver: pdo_mysql
+    metadata:
+        Entity: %appDir%/../
+
+# Parameters
+params:
+    string: string
+    empty:
+    number: 1
+    float: 1.5
+    boolean: yes
+    array:
+        one: one
+        two: two
+        three:
+            threeOne: threeOne

@@ -1,0 +1,19 @@
+{
+  "name": "webchemistry/parameters",
+  "type": "library",
+  "description": "Parameters provider",
+  "license": ["GPL-3.0"],
+  "support": {
+    "email": "antik494@gmail.com"
+  },
+  "keywords": ["parameters", "provider", "nette"],
+  "authors": [
+    {
+      "name": "Antik",
+      "email": "antik494@gmail.com"
+    }
+  ],
+  "autoload": {
+    "classmap": ["src/"]
+  }
+}
