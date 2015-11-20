@@ -54,3 +54,11 @@ Můj parameter: {$parameters->first}
 Můj parameter: {$parameters->array->first}
 Můj parameter: {$parameters->array['first']}
 ```
+
+## Úprava parametrů
+
+```php
+$parametersProvider->myVariable = 'new value';
+
+$parametersProvider->merge();
+```
