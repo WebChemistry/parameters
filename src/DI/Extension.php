@@ -48,7 +48,7 @@ class Extension extends CompilerExtension {
 		$init = $methods['initialize'];
 
 		if (self::$useDebugBar) {
-			$init->addBody('Tracy\Debugger::getBar()->addPanel($this->getService(?));', [$this->prefix('bar')]);
+			$init->addBody('if ($this->parameters["debugMode"]) Tracy\Debugger::getBar()->addPanel($this->getService(?));', [$this->prefix('bar')]);
 		}
 	}
 
