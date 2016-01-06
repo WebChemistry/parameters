@@ -60,5 +60,20 @@ Můj parameter: {$parameters->array['first']}
 ```php
 $parametersProvider->myVariable = 'new value';
 
-$parametersProvider->merge();
+$parametersProvider->merge(); // Invalidace cache a zapsani do db
 ```
+
+## Debug
+![Debug bar](https://ctrlv.cz/shots/2016/01/06/5x5z.png "Debug bar")
+
+**Vypnutí debug baru:**
+```php
+	WebChemistry\Parameters\DI\Extension::$useDebugBar = FALSE;
+```
+
+**Vypnutí cache:**
+```php
+	WebChemistry\Parameters\DI\Extension::$useCache = FALSE;
+```
+
+Při změně hodnoty je potřeba vymazat cache.
