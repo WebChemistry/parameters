@@ -31,18 +31,18 @@ class Extension extends CompilerExtension {
 		}
 
 		$builder->addDefinition($this->prefix('database'))
-				->setClass('WebChemistry\Parameters\IDatabase')
-				->setFactory($databaseClass);
+			->setClass('WebChemistry\Parameters\IDatabase')
+			->setFactory($databaseClass);
 
 		$builder->addDefinition($this->prefix('provider'))
-				->setClass('WebChemistry\Parameters\Provider', [$this->getConfig(), self::$useCache, $this->prefix('@database')]);
+			->setClass('WebChemistry\Parameters\Provider', [$this->getConfig(), self::$useCache, $this->prefix('@database')]);
 
-		if (self::$useDebugBar) {
-			$builder->addDefinition($this->prefix('bar'))
-					->setClass('WebChemistry\Parameters\Bar\Debug');
-		}
+		$builder->addDefinition($this->prefix('bar'))->setClass('WebChemistry\Parameters\Bar\Debug');
 	}
 
+	/**
+	 * @param Nette\PhpGenerator\ClassType $class
+	 */
 	public function afterCompile(Nette\PhpGenerator\ClassType $class) {
 		$methods = $class->getMethods();
 		$init = $methods['initialize'];

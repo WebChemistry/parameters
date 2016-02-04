@@ -32,4 +32,5 @@ interface IDatabase {
 	 * @return void
 	 */
 	public function clean();
+
 }

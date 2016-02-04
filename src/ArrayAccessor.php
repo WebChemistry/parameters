@@ -21,6 +21,12 @@ class ArrayAccessor extends \stdClass implements \ArrayAccess {
 	/** @var bool */
 	private $recursive;
 
+	/**
+	 * @param array $array
+	 * @param bool $recursive
+	 * @param ArrayAccessor $parent
+	 * @param string $keyName
+	 */
 	public function __construct(array $array, $recursive = TRUE, ArrayAccessor $parent = NULL, $keyName = NULL) {
 		$this->parent = $parent;
 		$this->keyName = $keyName;

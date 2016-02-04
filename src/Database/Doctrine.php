@@ -11,6 +11,9 @@ class Doctrine extends Object implements IDatabase {
 	/** @var \Doctrine\ORM\EntityManager */
 	private $entityManager;
 
+	/**
+	 * @param EntityManager $entityManager
+	 */
 	public function __construct(EntityManager $entityManager) {
 		$this->entityManager = $entityManager;
 	}
@@ -29,8 +32,8 @@ class Doctrine extends Object implements IDatabase {
 	}
 
 	/**
-	 * @param string           $id
-	 * @param string|int|float $value
+	 * @param string $id
+	 * @param mixed $value
 	 * @return void
 	 */
 	public function persist($id, $value) {
@@ -43,7 +46,7 @@ class Doctrine extends Object implements IDatabase {
 	}
 
 	/**
-	 * @param string           $id
+	 * @param string $id
 	 * @param string|int|float $value
 	 * @return void
 	 */
@@ -68,10 +71,10 @@ class Doctrine extends Object implements IDatabase {
 	 */
 	public function clean() {
 		$this->entityManager->getRepository('Entity\Parameter')
-							->createQueryBuilder('e')
-							->delete()
-							->getQuery()
-							->getResult();
+			->createQueryBuilder('e')
+			->delete()
+			->getQuery()
+			->getResult();
 	}
 
 }

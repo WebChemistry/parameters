@@ -18,6 +18,11 @@ class Debug implements IBarPanel {
 	/** @var \Nette\Http\UrlScript */
 	private $url;
 
+	/**
+	 * @param Provider $provider
+	 * @param Request $request
+	 * @param Response $response
+	 */
 	public function __construct(Provider $provider, Request $request, Response $response) {
 		$this->provider = $provider;
 		$this->url = $request->getUrl();
@@ -31,6 +36,9 @@ class Debug implements IBarPanel {
 		}
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getTab() {
 		$count = count($this->provider->getDefaultParameters());
 		ob_start();
@@ -38,6 +46,9 @@ class Debug implements IBarPanel {
 		return ob_get_clean();
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getPanel() {
 		$provider = $this->provider;
 		$url = $this->url;
@@ -46,6 +57,10 @@ class Debug implements IBarPanel {
 		return ob_get_clean();
 	}
 
+	/**
+	 * @param mixed $parameter
+	 * @return string
+	 */
 	public static function format($parameter) {
 		if ($parameter === NULL) {
 			return '<span style="color: blue">NULL</span>';

@@ -29,6 +29,12 @@ class Provider extends \stdClass implements \ArrayAccess {
 	/** @var \WebChemistry\Parameters\IDatabase */
 	private $database;
 
+	/**
+	 * @param array $parameters
+	 * @param bool $useCache
+	 * @param IDatabase $database
+	 * @param IStorage $storage
+	 */
 	public function __construct(array $parameters, $useCache, IDatabase $database, IStorage $storage) {
 		$this->defaults = $parameters;
 		$this->cache = new Cache($storage, 'webchemistry');
@@ -36,6 +42,10 @@ class Provider extends \stdClass implements \ArrayAccess {
 		$this->database = $database;
 	}
 
+	/**
+	 * @param string $name
+	 * @param mixed $value
+	 */
 	public function addNewParameter($name, $value) {
 		$this->defaults[$name] = $this->parseValue($value);
 	}
@@ -176,6 +186,10 @@ class Provider extends \stdClass implements \ArrayAccess {
 		return $value === NULL ? $value : (string) $value;
 	}
 
+	/**
+	 * @param \Traversable $traversable
+	 * @return array
+	 */
 	private function recursiveIteratorToArray(\Traversable $traversable) {
 		$array = [];
 

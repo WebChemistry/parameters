@@ -17,10 +17,11 @@ trait TPresenter {
 	/**
 	 * @return \Nette\Application\UI\ITemplate
 	 */
-	protected function createTemplate() {
+	protected function createTemplate($template = NULL) {
 		/** @var ITemplate $template */
-		$template = parent::createTemplate();
+		$template = $template ? : parent::createTemplate();
 		$template->parameters = $this->parametersProvider->getParameters();
+
 		return $template;
 	}
 

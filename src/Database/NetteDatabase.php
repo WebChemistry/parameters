@@ -12,6 +12,9 @@ class NetteDatabase implements IDatabase {
 	/** @var \Nette\Database\Context */
 	private $context;
 
+	/**
+	 * @param Context $context
+	 */
 	public function __construct(Context $context) {
 		$this->context = $context;
 	}
@@ -30,6 +33,10 @@ class NetteDatabase implements IDatabase {
 		return $array;
 	}
 
+	/**
+	 * @param string $id
+	 * @param mixed $value
+	 */
 	public function persist($id, $value) {
 		$this->context->table(self::TABLE_NAME)->insert([
 			'id' => $id,
@@ -38,6 +45,10 @@ class NetteDatabase implements IDatabase {
 		]);
 	}
 
+	/**
+	 * @param string $id
+	 * @param mixed $value
+	 */
 	public function merge($id, $value) {
 		$this->context->table(self::TABLE_NAME)->where('id = ?', $id)->update([
 			'content' => is_array($value) ? serialize($value) : ($value === NULL ? $value : (string) $value),
