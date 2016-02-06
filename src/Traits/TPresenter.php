@@ -15,8 +15,7 @@ trait TPresenter {
 	}
 
 	/**
-	 * @param ITemplate $template
-	 * @return ITemplate
+	 * @return \Nette\Application\UI\ITemplate
 	 */
 	protected function createTemplate($template = NULL) {
 		/** @var ITemplate $template */

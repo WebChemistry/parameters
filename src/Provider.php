@@ -2,11 +2,12 @@
 
 namespace WebChemistry\Parameters;
 
+use Entity\Parameter;
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
 use Nette\MemberAccessException;
 
-class Provider implements \ArrayAccess {
+class Provider extends \stdClass implements \ArrayAccess {
 
 	const PARAMETER_KEY = 'parameters';
 
@@ -177,6 +178,8 @@ class Provider implements \ArrayAccess {
 	protected function parseValue($value) {
 		if ($value instanceof \Traversable) {
 			return $this->recursiveIteratorToArray($value);
+		} else if (is_array($value)) {
+			return $value;
 		}
 
 		return $value === NULL ? $value : (string) $value;

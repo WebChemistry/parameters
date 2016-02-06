@@ -2,7 +2,8 @@
 
 namespace WebChemistry\Parameters;
 
-class ArrayAccessor implements \ArrayAccess {
+
+class ArrayAccessor extends \stdClass implements \ArrayAccess {
 
 	/** @var array */
 	private $changed = [];
@@ -40,7 +41,7 @@ class ArrayAccessor implements \ArrayAccess {
 	}
 
 	/**
-	 * Convert ArrayAccessor and his children to array
+	 * Convert ArrayAccessor and his childrens to array
 	 *
 	 * @return array
 	 */
