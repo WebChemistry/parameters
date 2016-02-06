@@ -2,9 +2,7 @@
 
 namespace WebChemistry\Parameters;
 
-use Traversable;
-
-class ArrayAccessor extends \stdClass implements \ArrayAccess {
+class ArrayAccessor implements \ArrayAccess {
 
 	/** @var array */
 	private $changed = [];
@@ -42,7 +40,7 @@ class ArrayAccessor extends \stdClass implements \ArrayAccess {
 	}
 
 	/**
-	 * Convert ArrayAccessor and his childrens to array
+	 * Convert ArrayAccessor and his children to array
 	 *
 	 * @return array
 	 */

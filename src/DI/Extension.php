@@ -4,7 +4,6 @@ namespace WebChemistry\Parameters\DI;
 
 use Nette;
 use Nette\DI\CompilerExtension;
-use Tracy\Debugger;
 
 class Extension extends CompilerExtension {
 

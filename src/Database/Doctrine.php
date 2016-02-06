@@ -8,7 +8,7 @@ use WebChemistry\Parameters\IDatabase;
 
 class Doctrine extends Object implements IDatabase {
 
-	/** @var \Doctrine\ORM\EntityManager */
+	/** @var EntityManager */
 	private $entityManager;
 
 	/**

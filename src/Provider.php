@@ -2,15 +2,11 @@
 
 namespace WebChemistry\Parameters;
 
-use Entity\Parameter;
-use Kdyby\Doctrine\EntityManager;
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
 use Nette\MemberAccessException;
-use Nette\Object;
-use Nette\Utils\ArrayHash;
 
-class Provider extends \stdClass implements \ArrayAccess {
+class Provider implements \ArrayAccess {
 
 	const PARAMETER_KEY = 'parameters';
 
