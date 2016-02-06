@@ -193,7 +193,7 @@ class Provider extends \stdClass implements \ArrayAccess {
 		$array = [];
 
 		foreach ($traversable as $key => $value) {
-			if (is_array($value) || $value instanceof \Traversable) {
+			if ($value instanceof \Traversable) {
 				$array[$key] = $this->recursiveIteratorToArray($value);
 			} else {
 				$array[$key] = $value;
