@@ -5,11 +5,15 @@ namespace WebChemistry\Parameters\Database;
 use Doctrine\ORM\EntityManager;
 use Nette\Object;
 use WebChemistry\Parameters\IDatabase;
+use WebChemistry\Parameters\IEntity;
 
 class Doctrine extends Object implements IDatabase {
 
 	/** @var \Doctrine\ORM\EntityManager */
 	private $entityManager;
+
+	/** @var string */
+	private $entity;
 
 	/**
 	 * @param EntityManager $entityManager
@@ -23,8 +27,7 @@ class Doctrine extends Object implements IDatabase {
 	 */
 	public function getPairs() {
 		$return = [];
-
-		foreach ($this->entityManager->getRepository('Entity\Parameter')->findAll() as $row) {
+		foreach ($this->entityManager->getRepository($this->entity)->findAll() as $row) {
 			$return[$row->id] = $row->content;
 		}
 
@@ -37,9 +40,9 @@ class Doctrine extends Object implements IDatabase {
 	 * @return void
 	 */
 	public function persist($id, $value) {
-		$entity = new \Entity\Parameter;
-		$entity->id = $id;
-		$entity->content = is_array($value) ? serialize($value) : ($value === NULL ? $value : (string) $value);
+		$entity = $this->createEntity();
+		$entity->setId($id);
+		$entity->setContent(is_array($value) ? serialize($value) : $value);
 		$entity->setIsSerialized(is_array($value));
 
 		$this->entityManager->persist($entity);
@@ -51,9 +54,9 @@ class Doctrine extends Object implements IDatabase {
 	 * @return void
 	 */
 	public function merge($id, $value) {
-		$entity = new \Entity\Parameter;
-		$entity->id = $id;
-		$entity->content = is_array($value) ? serialize($value) : ($value === NULL ? $value : (string) $value);
+		$entity = $this->createEntity();
+		$entity->setId($id);
+		$entity->setContent(is_array($value) ? serialize($value) : $value);
 		$entity->setIsSerialized(is_array($value));
 
 		$this->entityManager->merge($entity);
@@ -70,11 +73,28 @@ class Doctrine extends Object implements IDatabase {
 	 * @return void
 	 */
 	public function clean() {
-		$this->entityManager->getRepository('Entity\Parameter')
+		$this->entityManager->getRepository($this->entity)
 			->createQueryBuilder('e')
 			->delete()
 			->getQuery()
 			->getResult();
+	}
+
+	/**
+	 * @return IEntity
+	 */
+	private function createEntity() {
+		return new $this->entity;
+	}
+
+	/**
+	 * @param string $entity
+	 * @return self
+	 */
+	public function setEntity($entity) {
+		$this->entity = $entity;
+
+		return $this;
 	}
 
 }

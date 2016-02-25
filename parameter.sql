@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `parameter` (
+CREATE TABLE IF NOT EXISTS `parameters` (
   `id` VARCHAR(255) NOT NULL,
   `content` TEXT DEFAULT NULL,
   `is_serialized` tinyint(1) unsigned NOT NULL DEFAULT '0'

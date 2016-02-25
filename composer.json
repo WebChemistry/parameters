@@ -15,5 +15,16 @@
   ],
   "autoload": {
     "classmap": ["src/"]
+  },
+  "require": {
+
+  },
+  "require-dev": {
+    "codeception/codeception": "^2.1",
+    "nette/caching": "^2.3",
+    "nette/database": "^2.3",
+    "tracy/tracy": "^2.3",
+    "nette/http": "^2.3",
+    "nette/di": "^2.3"
   }
 }

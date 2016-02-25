@@ -7,11 +7,5 @@ namespace Helper;
 class Unit extends \Codeception\Module
 {
 
-	public function _beforeSuite($settings = []) {
-		/** @var \WebChemistry\Parameters\Provider $provider */
-		$provider = \E::getByType('WebChemistry\Parameters\Provider');
-		$provider->cleanDatabase();
-		$provider->cleanParametersCache();
-	}
 
 }

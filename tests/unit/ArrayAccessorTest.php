@@ -1,8 +1,8 @@
 <?php
 
 
-class ArrayAccessorTest extends \Codeception\TestCase\Test
-{
+class ArrayAccessorTest extends \Codeception\TestCase\Test {
+
     /**
      * @var \UnitTester
      */
@@ -32,8 +32,7 @@ class ArrayAccessorTest extends \Codeception\TestCase\Test
         $arrayAccess->first = '2';
         $arrayAccess->fourth = ['test' => ['testing']];
 
-        $this->assertTrue($arrayAccess->isChanged());
-        $this->assertSame(['second', 'first', 'fourth'], $arrayAccess->getChanged());
+        $this->assertSame(['first', 'fourth', 'second'], $arrayAccess->getChanged());
         $this->assertInstanceOf('WebChemistry\Parameters\ArrayAccessor', $arrayAccess->fourth->test);
         $this->assertSame('testing', $arrayAccess->fourth->test[0]);
 
@@ -58,4 +57,12 @@ class ArrayAccessorTest extends \Codeception\TestCase\Test
         $this->assertFalse(isset($arrayAccess['dog']));
         $this->assertFalse(isset($arrayAccess->dog));
     }
+
+    public function testNotExists() {
+        $arrayAccess = $this->getArrayAccessor();
+        $this->tester->assertExceptionThrown('WebChemistry\Parameters\ParameterNotExistsException', function () use ($arrayAccess) {
+            $arrayAccess['notExists']->asd = NULL;
+        });
+    }
+
 }

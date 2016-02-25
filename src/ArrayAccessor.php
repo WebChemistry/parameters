@@ -2,8 +2,7 @@
 
 namespace WebChemistry\Parameters;
 
-
-class ArrayAccessor extends \stdClass implements \ArrayAccess {
+class ArrayAccessor implements \ArrayAccess {
 
 	/** @var array */
 	private $changed = [];
@@ -11,117 +10,149 @@ class ArrayAccessor extends \stdClass implements \ArrayAccess {
 	/** @var array */
 	private $data = [];
 
-	/** @var \WebChemistry\Parameters\ArrayAccessor */
-	private $parent;
-
-	/** @var string */
-	private $keyName;
-
-	/** @var bool */
-	private $recursive;
+	/** @var array keys */
+	private $arrayAccessors = [];
 
 	/**
 	 * @param array $array
-	 * @param bool $recursive
-	 * @param ArrayAccessor $parent
-	 * @param string $keyName
 	 */
-	public function __construct(array $array, $recursive = TRUE, ArrayAccessor $parent = NULL, $keyName = NULL) {
-		$this->parent = $parent;
-		$this->keyName = $keyName;
-		$this->recursive = $recursive;
-
-		foreach ($array as $key => $value) {
-			if ($recursive && is_array($value)) {
-				$this->data[$key] = new self($value, $recursive, $this, $key);
-			} else {
-				$this->data[$key] = $value;
-			}
-		}
+	public function __construct(array $array) {
+		$this->data = $array;
 	}
 
 	/**
-	 * Convert ArrayAccessor and his childrens to array
+	 * Convert ArrayAccessor and his children to array
 	 *
 	 * @return array
 	 */
 	public function getArray() {
-		$return = [];
-
-		foreach ($this->data as $key => $value) {
-			if ($value instanceof ArrayAccessor) {
-				$return[$key] = $value->getArray();
-			} else {
-				$return[$key] = $value;
-			}
+		$return = $this->data;
+		foreach ($this->arrayAccessors as $key => $void) {
+			$return[$key] = $return[$key]->getArray();
 		}
 
 		return $return;
 	}
 
 	/**
-	 * @param string $name
-	 * @internal
-	 */
-	public function changed($name) {
-		if (!in_array($name, $this->changed)) {
-			$this->changed[] = $name;
-
-			if ($this->parent) {
-				$this->parent->changed($this->keyName);
-			}
-		}
-	}
-
-	/**
 	 * @return array
 	 */
 	public function getChanged() {
-		return $this->changed;
+		foreach ($this->arrayAccessors as $key => $void) {
+			if (!isset($this->changed[$key]) && $this->data[$key]->getChanged()) {
+				$this->changed[$key] = TRUE;
+			}
+		}
+
+		return array_keys($this->changed);
 	}
 
 	/**
-	 * @return bool
+	 * Convert Traversable to array
+	 *
+	 * @param mixed $value
+	 * @return mixed
 	 */
-	public function isChanged() {
-		return (bool) $this->changed;
-	}
-
-	public function __get($name) {
-		return $this->data[$name];
-	}
-
-	public function __set($name, $value) {
-		$this->changed($name);
-
-		if ($this->recursive && is_array($value)) {
-			$value = new self($value, $this->recursive, $this, $name);
+	private function parseValue($value) {
+		if ($value instanceof \Traversable) {
+			return $this->recursiveIteratorToArray($value);
 		}
 
-		$this->data[$name] = $value;
+		return $value;
 	}
 
+	/**
+	 * @param \Traversable $traversable
+	 * @return array
+	 */
+	private function recursiveIteratorToArray(\Traversable $traversable) {
+		$array = [];
+		foreach ($traversable as $key => $value) {
+			$array[$key] = $value instanceof \Traversable ? $this->recursiveIteratorToArray($value) : $value;
+		}
+
+		return $array;
+	}
+
+	/**
+	 * @param string|int $name
+	 * @return mixed|ArrayAccessor
+	 * @throws ParameterNotExistsException
+	 */
+	public function __get($name) {
+		if (!$this->__isset($name)) {
+			throw new ParameterNotExistsException($name);
+		}
+		$value = &$this->data[$name];
+		if (is_array($value)) {
+			$this->arrayAccessors[$name] = TRUE;
+			$value = new self($value); // Lazy
+		}
+
+		return $value;
+	}
+
+	/**
+	 * @param string|int $name
+	 * @param mixed|ArrayAccessor $value
+	 */
+	public function __set($name, $value) {
+		if ($value instanceof ArrayAccessor) {
+			$this->arrayAccessors[$name] = TRUE;
+		} else if (isset($this->arrayAccessors[$name])) {
+			unset($this->arrayAccessors[$name]);
+		}
+
+		$this->changed[$name] = TRUE;
+		$this->data[$name] = $this->parseValue($value);
+	}
+
+	/**
+	 * @param string|int $name
+	 * @return bool
+	 */
 	public function __isset($name) {
 		return array_key_exists($name, $this->data);
 	}
 
+	/**
+	 * @param string $name
+	 */
 	public function __unset($name) {
-		$this->changed($name);
+		if (isset($this->arrayAccessors[$name])) {
+			unset($this->arrayAccessors[$name]);
+		}
+		$this->changed[$name] = TRUE;
 		$this->data[$name] = NULL;
 	}
 
+	/**
+	 * @param mixed $offset
+	 * @return bool
+	 */
 	public function offsetExists($offset) {
 		return $this->__isset($offset);
 	}
 
+	/**
+	 * @param string|int $offset
+	 * @return mixed|ArrayAccessor
+	 */
 	public function offsetGet($offset) {
 		return $this->__get($offset);
 	}
 
+	/**
+	 * @param string|int $offset
+	 * @param mixed $value
+	 */
 	public function offsetSet($offset, $value) {
 		$this->__set($offset, $value);
 	}
 
+	/**
+	 * @param string|int $offset
+	 */
 	public function offsetUnset($offset) {
 		$this->__unset($offset);
 	}

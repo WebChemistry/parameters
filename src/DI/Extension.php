@@ -4,17 +4,19 @@ namespace WebChemistry\Parameters\DI;
 
 use Nette;
 use Nette\DI\CompilerExtension;
+use WebChemistry\Parameters\ConfigurationException;
 
 class Extension extends CompilerExtension {
 
-	/** @var string */
-	public static $databaseClass = 'doctrine';
-
-	/** @var bool */
-	public static $useCache = TRUE;
-
-	/** @var bool */
-	public static $useDebugBar = TRUE;
+	/** @var array */
+	public $defaults = [
+		'paramsSettings' => [
+			'cache' => TRUE,
+			'bar' => '%debugMode%',
+			'database' => 'Doctrine',
+			'entity' => 'Entity\Parameters'
+		]
+	];
 
 	/**
 	 * Processes configuration data. Intended to be overridden by descendant.
@@ -23,20 +25,34 @@ class Extension extends CompilerExtension {
 	 */
 	public function loadConfiguration() {
 		$builder = $this->getContainerBuilder();
+		$values = $this->validateConfig($this->defaults);
+		$config = Nette\DI\Helpers::expand($values['paramsSettings'], $builder->parameters);
+		unset($values['paramsSettings']);
 
-		$databaseClass = 'WebChemistry\Parameters\Database\\' . ucfirst(self::$databaseClass);
+		$databaseClass = strpos($config['database'], '\\') ? $config['database'] : 'WebChemistry\Parameters\Database\\' . $config['database'];
 		if (!class_exists($databaseClass)) {
-			throw new \Exception("Class $databaseClass does not exist.");
+			throw new \Exception("Class '$databaseClass' does not exist.");
 		}
 
-		$builder->addDefinition($this->prefix('database'))
+		$db = $builder->addDefinition($this->prefix('database'))
 			->setClass('WebChemistry\Parameters\IDatabase')
 			->setFactory($databaseClass);
 
-		$builder->addDefinition($this->prefix('provider'))
-			->setClass('WebChemistry\Parameters\Provider', [$this->getConfig(), self::$useCache, $this->prefix('@database')]);
+		if ($config['database'] === 'Doctrine') {
+			$implements = class_implements($config['entity']);
+			if (array_search('WebChemistry\Parameters\IEntity', $implements) === FALSE) {
+				throw new ConfigurationException("Class '$config[database]' must implements WebChemistry\\Parameters\\IEntity.");
+			}
+			$db->addSetup('setEntity', [$config['entity']]);
+		}
 
-		$builder->addDefinition($this->prefix('bar'))->setClass('WebChemistry\Parameters\Bar\Debug');
+		$builder->addDefinition($this->prefix('provider'))
+			->setClass('WebChemistry\Parameters\Provider', [$this->getConfig(), $config['cache'], $this->prefix('@database')]);
+
+		if ($config['bar']) {
+			$builder->addDefinition($this->prefix('bar'))
+				->setClass('WebChemistry\Parameters\Bar\Debug');
+		}
 	}
 
 	/**
@@ -46,7 +62,7 @@ class Extension extends CompilerExtension {
 		$methods = $class->getMethods();
 		$init = $methods['initialize'];
 
-		if (self::$useDebugBar) {
+		if ($this->getContainerBuilder()->hasDefinition($this->prefix('bar'))) {
 			$init->addBody('if ($this->parameters["debugMode"]) Tracy\Debugger::getBar()->addPanel($this->getService(?));', [$this->prefix('bar')]);
 		}
 	}

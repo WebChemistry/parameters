@@ -23,4 +23,17 @@ class UnitTester extends \Codeception\Actor
    /**
     * Define custom actions here
     */
+    public function assertExceptionThrown($exception, $function)
+    {
+        try
+        {
+            $function();
+            return false;
+        } catch (Exception $e) {
+            if( get_class($e) == $exception ){
+                return true;
+            }
+            return false;
+        }
+    }
 }

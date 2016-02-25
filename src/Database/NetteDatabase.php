@@ -7,7 +7,7 @@ use WebChemistry\Parameters\IDatabase;
 
 class NetteDatabase implements IDatabase {
 
-	const TABLE_NAME = 'parameter';
+	const TABLE_NAME = 'parameters';
 
 	/** @var \Nette\Database\Context */
 	private $context;
@@ -40,7 +40,7 @@ class NetteDatabase implements IDatabase {
 	public function persist($id, $value) {
 		$this->context->table(self::TABLE_NAME)->insert([
 			'id' => $id,
-			'content' => is_array($value) ? serialize($value) : ($value === NULL ? $value : (string) $value),
+			'content' => is_array($value) ? serialize($value) : $value,
 			'is_serialized' => is_array($value)
 		]);
 	}
@@ -51,7 +51,7 @@ class NetteDatabase implements IDatabase {
 	 */
 	public function merge($id, $value) {
 		$this->context->table(self::TABLE_NAME)->where('id = ?', $id)->update([
-			'content' => is_array($value) ? serialize($value) : ($value === NULL ? $value : (string) $value),
+			'content' => is_array($value) ? serialize($value) : $value,
 			'is_serialized' => is_array($value)
 		]);
 	}

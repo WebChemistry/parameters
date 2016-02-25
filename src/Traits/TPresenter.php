@@ -10,17 +10,20 @@ trait TPresenter {
 	/** @var Provider */
 	protected $parametersProvider;
 
+	/**
+	 * @param Provider $provider
+	 */
 	public function injectParametersProvider(Provider $provider) {
 		$this->parametersProvider = $provider;
 	}
 
 	/**
-	 * @return \Nette\Application\UI\ITemplate
+	 * @return ITemplate
 	 */
 	protected function createTemplate($template = NULL) {
 		/** @var ITemplate $template */
 		$template = $template ? : parent::createTemplate();
-		$template->parameters = $this->parametersProvider->getParameters();
+		$template->parameters = $this->parametersProvider;
 
 		return $template;
 	}

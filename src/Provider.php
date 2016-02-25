@@ -2,14 +2,14 @@
 
 namespace WebChemistry\Parameters;
 
-use Entity\Parameter;
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
 use Nette\MemberAccessException;
 
-class Provider extends \stdClass implements \ArrayAccess {
+class Provider implements \ArrayAccess {
 
 	const PARAMETER_KEY = 'parameters';
+	const NAMESPACE_STORAGE = 'WebChemistry.Parameters';
 
 	/** @var ArrayAccessor */
 	private $parameters;
@@ -20,22 +20,20 @@ class Provider extends \stdClass implements \ArrayAccess {
 	/** @var array */
 	private $defaults;
 
-	/** @var bool */
-	private $useCache;
-
 	/** @var \WebChemistry\Parameters\IDatabase */
 	private $database;
 
 	/**
-	 * @param array $parameters
+	 * @param array $defaults
 	 * @param bool $useCache
 	 * @param IDatabase $database
 	 * @param IStorage $storage
 	 */
-	public function __construct(array $parameters, $useCache, IDatabase $database, IStorage $storage) {
-		$this->defaults = $parameters;
-		$this->cache = new Cache($storage, 'webchemistry');
-		$this->useCache = $useCache;
+	public function __construct(array $defaults, $useCache, IDatabase $database = NULL, IStorage $storage = NULL) {
+		$this->defaults = $defaults;
+		if ($storage && $useCache) {
+			$this->cache = new Cache($storage, self::NAMESPACE_STORAGE);
+		}
 		$this->database = $database;
 	}
 
@@ -45,19 +43,23 @@ class Provider extends \stdClass implements \ArrayAccess {
 	 */
 	public function addNewParameter($name, $value) {
 		$this->defaults[$name] = $this->parseValue($value);
+		if ($this->parameters) {
+			$this->parameters[$name] = $this->parseValue($value);
+		}
 	}
 
 	/**
 	 * @internal
 	 */
 	public function import() {
+		if (!$this->database) {
+			return;
+		}
 		$flush = FALSE;
 		$parameters = $this->getParameters();
-
 		foreach ($this->getDefaultParameters() as $name => $value) {
 			if (!isset($parameters[$name])) {
 				$flush = TRUE;
-
 				$this->database->persist($name, $value);
 			}
 		}
@@ -76,67 +78,35 @@ class Provider extends \stdClass implements \ArrayAccess {
 	}
 
 	/**
-	 * @param string $name
-	 * @return mixed
-	 */
-	protected function getParameter($name) {
-		if ($this->parameters === NULL) {
-			$this->getParameters();
-		}
-
-		return $this->parameters[$name];
-	}
-
-	/**
-	 * @param string $name
-	 * @param mixed $value
-	 */
-	protected function setParameter($name, $value) {
-		if ($this->parameters === NULL) {
-			$this->getParameters();
-		}
-
-		$this->parameters[$name] = $this->parseValue($value);
-	}
-
-	/**
 	 * @return ArrayAccessor
 	 */
 	public function getParameters() {
-		if ($this->parameters !== NULL) {
-			return $this->parameters;
-		}
-
-		if ($this->useCache) {
-			$value = $this->cache->load(self::PARAMETER_KEY);
-		} else {
-			$value = NULL;
-		}
-
-		if (!$value) {
-			$value = $this->database->getPairs();
-
-			if ($this->useCache) {
-				$this->cache->save(self::PARAMETER_KEY, $value);
+		if ($this->parameters === NULL) {
+			$value = $this->cache ? $this->cache->load(self::PARAMETER_KEY) : NULL;
+			if (!$value) {
+				if ($this->database) {
+					$value = $this->database->getPairs();
+					if ($this->cache) {
+						$this->cache->save(self::PARAMETER_KEY, $value);
+					}
+				} else {
+					$value = $this->defaults;
+				}
 			}
+			$this->parameters = new ArrayAccessor($value);
 		}
 
-		return $this->parameters = new ArrayAccessor($value);
+		return $this->parameters;
 	}
 
 	/**
 	 * @return void
 	 */
 	public function cleanParametersCache() {
-		$this->cache->remove(self::PARAMETER_KEY);
 		$this->parameters = NULL;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isChanged() {
-		return $this->getParameters()->isChanged();
+		if ($this->cache) {
+			$this->cache->remove(self::PARAMETER_KEY);
+		}
 	}
 
 	/**
@@ -145,19 +115,20 @@ class Provider extends \stdClass implements \ArrayAccess {
 	 * @return bool FALSE - Values are not changed
 	 */
 	public function merge() {
-		if (!$this->isChanged()) {
+		if (!$this->database) {
 			return FALSE;
 		}
-
-		$array = $this->getParameters()->getArray();
-
-		foreach ($this->getParameters()->getChanged() as $key) {
-			$this->database->merge($key, $array[$key]);
+		$diff = $this->parameters->getChanged();
+		if (!$diff) {
+			return FALSE;
 		}
+		$parameters = $this->getParameters()->getArray();
 
+		foreach ($diff as $key) {
+			$this->database->merge($key, $parameters[$key]);
+		}
 		$this->database->flush();
 		$this->cleanParametersCache();
-		$this->parameters = NULL;
 
 		return TRUE;
 	}
@@ -166,108 +137,88 @@ class Provider extends \stdClass implements \ArrayAccess {
 	 * Truncate database
 	 */
 	public function cleanDatabase() {
-		$this->database->clean();
-	}
-
-	/**
-	 * Convert Traversable to array
-	 *
-	 * @param mixed $value
-	 * @return string|array
-	 */
-	protected function parseValue($value) {
-		if ($value instanceof \Traversable) {
-			return $this->recursiveIteratorToArray($value);
-		} else if (is_array($value)) {
-			return $value;
+		if ($this->database) {
+			$this->database->clean();
 		}
-
-		return $value === NULL ? $value : (string) $value;
-	}
-
-	/**
-	 * @param \Traversable $traversable
-	 * @return array
-	 */
-	private function recursiveIteratorToArray(\Traversable $traversable) {
-		$array = [];
-
-		foreach ($traversable as $key => $value) {
-			if ($value instanceof \Traversable) {
-				$array[$key] = $this->recursiveIteratorToArray($value);
-			} else {
-				$array[$key] = $value;
-			}
-		}
-
-		return $array;
 	}
 
 	/************************* Magic methods **************************/
-	
+
 	/**
 	 * Returns property value. Do not call directly.
 	 *
-	 * @param  string  property name
-	 * @return mixed   property value
+	 * @param string $name property name
+	 * @return mixed property value
 	 * @throws MemberAccessException if the property is not defined.
 	 */
-	public function &__get($name) {
-		$return = $this->offsetGet($name);
-
-		return $return;
+	public function __get($name) {
+		return $this->getParameters()->__get($name);
 	}
 
 	/**
 	 * Sets value of a property. Do not call directly.
 	 *
-	 * @param  string  property name
-	 * @param  mixed   property value
+	 * @param string $name property name
+	 * @param mixed $value property value
 	 * @return void
 	 * @throws MemberAccessException if the property is not defined or is read-only
 	 */
 	public function __set($name, $value) {
-		$this->offsetSet($name, $value);
+		$this->getParameters()->__set($name, $value);
 	}
 
 	/**
 	 * Is property defined?
 	 *
-	 * @param  string  property name
+	 * @param string $name property name
 	 * @return bool
 	 */
 	public function __isset($name) {
-		return $this->offsetExists($name);
+		return $this->getParameters()->__isset($name);
 	}
 
 	/**
 	 * Access to undeclared property.
 	 *
-	 * @param  string  property name
+	 * @param string $name property name
 	 * @return void
 	 * @throws MemberAccessException
 	 */
 	public function __unset($name) {
-		$this->offsetUnset($name);
+		$this->getParameters()->__unset($name);
 	}
 
+	/************************* ArrayAccess **************************/
+
+	/**
+	 * @param mixed $offset
+	 * @return bool
+	 */
 	public function offsetExists($offset) {
-		$parameters = $this->getParameters();
-		return isset($parameters[$offset]);
+		return $this->__isset($offset);
 	}
 
+	/**
+	 * @param mixed $offset
+	 * @return mixed
+	 */
 	public function offsetGet($offset) {
-		$value = $this->getParameter($offset);
-
-		return $value;
+		return $this->__get($offset);
 	}
 
+	/**
+	 * @param mixed $offset
+	 * @param mixed $value
+	 */
 	public function offsetSet($offset, $value) {
-		$this->setParameter($offset, $value);
+		$this->__set($offset, $value);
 	}
 
+	/**
+	 * @param mixed $offset
+	 */
 	public function offsetUnset($offset) {
-		$this->setParameter($offset, NULL);
+		$this->__unset($offset);
 	}
 
 }
