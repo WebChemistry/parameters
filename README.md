@@ -8,12 +8,18 @@
 - Zobrazit aktuální a výchozí hodnoty v debug baru
 - Import nových parametrů z debug baru
 
-## Použití
+## Konfigurace
 
-Registrace v konfigu:
 ```yaml
 extensions:
-    params: WebChemistry\Parameters\DI\Extension
+    params: WebChemistry\Parameters\DI\ParametersExtension
+
+params:
+    paramsSettings:
+        cache: yes
+        bar: %debugMode%
+        database: Doctrine # Vlastní třída nebo NetteDatabase
+        entity: Entity\Parameters
 ```
 
 Použití:
@@ -60,20 +66,8 @@ Můj parameter: {$parameters->array['first']}
 ```php
 $parametersProvider->myVariable = 'new value';
 
-$parametersProvider->merge(); // Invalidace cache a zapsani do db
+$parametersProvider->merge(); // Invalidace cache a provede změny v databazi
 ```
 
 ## Debug
 ![Debug bar](https://ctrlv.cz/shots/2016/01/06/5x5z.png "Debug bar")
-
-**Vypnutí debug baru:**
-```php
-	WebChemistry\Parameters\DI\Extension::$useDebugBar = FALSE;
-```
-
-**Vypnutí cache:**
-```php
-	WebChemistry\Parameters\DI\Extension::$useCache = FALSE;
-```
-
-Při změně hodnoty je potřeba vymazat cache.

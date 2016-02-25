@@ -18,7 +18,7 @@ class ExtensionTest extends \Codeception\TestCase\Test {
 				'debugMode' => TRUE
 			]
 		]);
-		$this->compiler->addExtension('params', new \WebChemistry\Parameters\DI\Extension());
+		$this->compiler->addExtension('params', new \WebChemistry\Parameters\DI\ParametersExtension());
 		$this->compiler->addExtension('http', new \Nette\Bridges\HttpDI\HttpExtension());
 		$this->compiler->addExtension('mock', new MockExtension());
 	}
