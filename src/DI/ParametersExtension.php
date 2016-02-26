@@ -25,33 +25,36 @@ class ParametersExtension extends CompilerExtension {
 	 */
 	public function loadConfiguration() {
 		$builder = $this->getContainerBuilder();
-		$values = $this->validateConfig($this->defaults);
+		$values = Nette\DI\Config\Helpers::merge($this->getConfig(), $this->defaults);
 		$config = Nette\DI\Helpers::expand($values['paramsSettings'], $builder->parameters);
 		unset($values['paramsSettings']);
+		$db = NULL;
 
-		$databaseClass = strpos($config['database'], '\\') ? $config['database'] : 'WebChemistry\Parameters\Database\\' . $config['database'];
-		if (!class_exists($databaseClass)) {
-			throw new \Exception("Class '$databaseClass' does not exist.");
-		}
-
-		$db = $builder->addDefinition($this->prefix('database'))
-			->setClass('WebChemistry\Parameters\IDatabase')
-			->setFactory($databaseClass);
-
-		if ($config['database'] === 'Doctrine') {
-			$implements = class_implements($config['entity']);
-			if (array_search('WebChemistry\Parameters\IEntity', $implements) === FALSE) {
-				throw new ConfigurationException("Class '$config[database]' must implements WebChemistry\\Parameters\\IEntity.");
+		if ($config['database'] !== FALSE) {
+			$databaseClass = strpos($config['database'], '\\') ? $config['database'] : 'WebChemistry\Parameters\Database\\' . $config['database'];
+			if (!class_exists($databaseClass)) {
+				throw new \Exception("Class '$databaseClass' does not exist.");
 			}
-			$db->addSetup('setEntity', [$config['entity']]);
+
+			$db = $builder->addDefinition($this->prefix('database'))
+				->setClass('WebChemistry\Parameters\IDatabase')
+				->setFactory($databaseClass);
+
+			if ($config['database'] === 'Doctrine') {
+				$implements = class_implements($config['entity']);
+				if (array_search('WebChemistry\Parameters\IEntity', $implements) === FALSE) {
+					throw new ConfigurationException("Class '$config[database]' must implements WebChemistry\\Parameters\\IEntity.");
+				}
+				$db->addSetup('setEntity', [$config['entity']]);
+			}
 		}
 
 		$builder->addDefinition($this->prefix('provider'))
-			->setClass('WebChemistry\Parameters\Provider', [$this->getConfig(), $config['cache'], $this->prefix('@database')]);
+			->setClass('WebChemistry\Parameters\Provider', [$values, $config['cache'], $db]);
 
-		if ($config['bar']) {
+		if ($config['bar'] && class_exists('Tracy\Debugger')) {
 			$builder->addDefinition($this->prefix('bar'))
-				->setClass('WebChemistry\Parameters\Bar\Debug');
+				->setClass('WebChemistry\Parameters\Bar\Debug', [(bool) $db]);
 		}
 	}
 

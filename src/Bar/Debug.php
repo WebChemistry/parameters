@@ -18,14 +18,25 @@ class Debug implements IBarPanel {
 	/** @var \Nette\Http\UrlScript */
 	private $url;
 
+	/** @var array */
+	private $defaults;
+
+	/** @var array */
+	private $parameters;
+
+	/** @var bool */
+	private $hasDb;
+
 	/**
+	 * @param bool $hasDb
 	 * @param Provider $provider
 	 * @param Request $request
 	 * @param Response $response
 	 */
-	public function __construct(Provider $provider, Request $request, Response $response) {
+	public function __construct($hasDb, Provider $provider, Request $request, Response $response) {
 		$this->provider = $provider;
 		$this->url = $request->getUrl();
+		$this->hasDb = $hasDb;
 
 		if ($this->url->getQueryParameter('debug-import-parameters')) {
 			$provider->import();
@@ -37,10 +48,32 @@ class Debug implements IBarPanel {
 	}
 
 	/**
+	 * @return array
+	 */
+	private function getDefaultParameters() {
+		if ($this->defaults === NULL) {
+			$this->defaults = $this->provider->getDefaultParameters();
+		}
+
+		return $this->defaults;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getParameters() {
+		if ($this->parameters === NULL) {
+			$this->parameters = $this->provider->getParameters()->getArray();
+		}
+
+		return $this->parameters;
+	}
+
+	/**
 	 * @return string
 	 */
 	public function getTab() {
-		$count = count($this->provider->getDefaultParameters());
+		$count = count(array_merge($this->getDefaultParameters(), $this->getParameters()));
 		ob_start();
 		require __DIR__ . '/templates/tab.phtml';
 		return ob_get_clean();
@@ -50,8 +83,10 @@ class Debug implements IBarPanel {
 	 * @return string
 	 */
 	public function getPanel() {
-		$provider = $this->provider;
 		$url = $this->url;
+		$parameters = $this->getParameters();
+		$defaults = $this->getDefaultParameters();
+		$hasDb = $this->hasDb;
 		ob_start();
 		require __DIR__ . '/templates/panel.phtml';
 		return ob_get_clean();

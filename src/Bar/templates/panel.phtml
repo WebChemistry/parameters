@@ -1,10 +1,8 @@
 <?php
-/** @var \WebChemistry\Parameters\Provider $provider */
-$provider;
-$parameters = $provider->getParameters();
 $new = FALSE;
 ?>
-<style class="tracy-debug">.nette-debug-parameters-bold { font-weight: bold !important } .nette-debug-parameters-green { color: green !important }</style>
+<style class="tracy-debug">.nette-debug-parameters-bold{font-weight: bold !important}.nette-debug-parameters-green{color: green !important}
+	.nette-debug-parameters-red{color: #a00000 !important}</style>
 <div class="nette-Parameters">
 	<h1>Parameters</h1>
 
@@ -14,19 +12,28 @@ $new = FALSE;
 				<tr>
 					<th>ID</th>
 					<th>Default value</th>
-					<th>Current value</th>
+					<?php if ($hasDb): ?><th>Current value</th><?php endif; ?>
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach ($provider->getDefaultParameters() as $key => $value):
+				<?php foreach ($defaults as $key => $value):
 					$isNew = !isset($parameters[$key]);
-
-					if ($isNew) $new = TRUE;
+					if ($isNew) {
+						$new = TRUE;
+					}
+					unset($parameters[$key]);
 					?>
 				<tr>
 					<td class="nette-debug-parameters-bold<?php echo $isNew ? ' nette-debug-parameters-green' : '' ?>"><?php echo $key; ?></td>
 					<td><?php echo \WebChemistry\Parameters\Bar\Debug::format($value); ?></td>
-					<td><?php echo $isNew ? '<span class="nette-debug-parameters-green">New!</span>' : \WebChemistry\Parameters\Bar\Debug::format($parameters[$key]) ?></td>
+					<?php if ($hasDb): ?><td><?php echo $isNew ? '<span class="nette-debug-parameters-green">New!</span>' : \WebChemistry\Parameters\Bar\Debug::format($parameters[$key]) ?></td><?php endif; ?>
+				</tr>
+				<?php endforeach; ?>
+				<?php foreach ($parameters as $key => $value): ?>
+				<tr>
+					<td class="nette-debug-parameters-bold nette-debug-parameters-red"><?php echo $key; ?></td>
+					<td><span class="nette-debug-parameters-red">Not exists</span></td>
+					<td><?php echo \WebChemistry\Parameters\Bar\Debug::format($parameters[$key]) ?></td>
 				</tr>
 				<?php endforeach; ?>
 			</tbody>
