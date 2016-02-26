@@ -1,5 +1,7 @@
 # Parameters manager
 
+[![Build Status](https://travis-ci.org/WebChemistry/Parameters.svg?branch=master)](https://travis-ci.org/WebChemistry/Parameters)
+
 ## Co to umí?
 - Importovat výchozí hodnoty parametrů z konfigu.
 - Cache parametrů z databáze
