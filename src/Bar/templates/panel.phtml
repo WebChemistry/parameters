@@ -21,14 +21,16 @@ $new = FALSE;
 					if ($isNew) {
 						$new = TRUE;
 					}
-					unset($parameters[$key]);
 					?>
 				<tr>
 					<td class="nette-debug-parameters-bold<?php echo $isNew ? ' nette-debug-parameters-green' : '' ?>"><?php echo $key; ?></td>
 					<td><?php echo \WebChemistry\Parameters\Bar\Debug::format($value); ?></td>
 					<?php if ($hasDb): ?><td><?php echo $isNew ? '<span class="nette-debug-parameters-green">New!</span>' : \WebChemistry\Parameters\Bar\Debug::format($parameters[$key]) ?></td><?php endif; ?>
 				</tr>
-				<?php endforeach; ?>
+				<?php 
+					unset($parameters[$key]);
+					endforeach;
+				?>
 				<?php foreach ($parameters as $key => $value): ?>
 				<tr>
 					<td class="nette-debug-parameters-bold nette-debug-parameters-red"><?php echo $key; ?></td>
