@@ -43,7 +43,7 @@ class ParametersExtension extends CompilerExtension {
 			if ($config['database'] === 'Doctrine') {
 				$implements = class_implements($config['entity']);
 				if (array_search('WebChemistry\Parameters\IEntity', $implements) === FALSE) {
-					throw new ConfigurationException("Class '$config[database]' must implements WebChemistry\\Parameters\\IEntity.");
+					throw new ConfigurationException("Class '$config[entity]' must implements WebChemistry\\Parameters\\IEntity.");
 				}
 				$db->addSetup('setEntity', [$config['entity']]);
 			}
