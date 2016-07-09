@@ -10,16 +10,16 @@ use WebChemistry\Parameters\IEntity;
 class Doctrine extends Object implements IDatabase {
 
 	/** @var \Doctrine\ORM\EntityManager */
-	private $entityManager;
+	private $em;
 
 	/** @var string */
 	private $entity;
 
 	/**
-	 * @param EntityManager $entityManager
+	 * @param EntityManager $em
 	 */
-	public function __construct(EntityManager $entityManager) {
-		$this->entityManager = $entityManager;
+	public function __construct(EntityManager $em) {
+		$this->em = $em;
 	}
 
 	/**
@@ -27,8 +27,8 @@ class Doctrine extends Object implements IDatabase {
 	 */
 	public function getPairs() {
 		$return = [];
-		foreach ($this->entityManager->getRepository($this->entity)->findAll() as $row) {
-			$return[$row->id] = $row->content;
+		foreach ($this->findAll() as $row) {
+			$return[$row->getContent()] = $row->getContent();
 		}
 
 		return $return;
@@ -45,7 +45,7 @@ class Doctrine extends Object implements IDatabase {
 		$entity->setContent(is_array($value) ? serialize($value) : $value);
 		$entity->setIsSerialized(is_array($value));
 
-		$this->entityManager->persist($entity);
+		$this->em->persist($entity);
 	}
 
 	/**
@@ -59,25 +59,22 @@ class Doctrine extends Object implements IDatabase {
 		$entity->setContent(is_array($value) ? serialize($value) : $value);
 		$entity->setIsSerialized(is_array($value));
 
-		$this->entityManager->merge($entity);
+		$this->em->merge($entity);
 	}
 
 	/**
 	 * @return void
 	 */
 	public function flush() {
-		$this->entityManager->flush();
+		$this->em->flush();
 	}
 
 	/**
 	 * @return void
 	 */
 	public function clean() {
-		$this->entityManager->getRepository($this->entity)
-			->createQueryBuilder('e')
-			->delete()
-			->getQuery()
-			->getResult();
+		$builder = $this->getRepository()->createQueryBuilder('e')->delete();
+		$builder->getQuery()->getResult();
 	}
 
 	/**
@@ -95,6 +92,17 @@ class Doctrine extends Object implements IDatabase {
 		$this->entity = $entity;
 
 		return $this;
+	}
+
+	/**
+	 * @return IEntity[]
+	 */
+	private function findAll() {
+		return $this->getRepository()->findAll();
+	}
+
+	private function getRepository() {
+		return $this->em->getRepository($this->entity);
 	}
 
 }
