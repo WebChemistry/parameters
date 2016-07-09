@@ -5,19 +5,33 @@ namespace WebChemistry\Parameters;
 interface IEntity {
 
 	/**
-	 * @param int $id
+	 * @param string $id
 	 */
 	public function setId($id);
 
 	/**
-	 * @param mixed $content
+	 * @param string $content
 	 */
 	public function setContent($content);
 
 	/**
 	 * @param bool $serialized
-	 * @return mixed
 	 */
 	public function setIsSerialized($serialized);
+
+	/**
+	 * @return string
+	 */
+	public function getId();
+
+	/**
+	 * @return string
+	 */
+	public function getContent();
+
+	/**
+	 * @return string
+	 */
+	public function getIsSerialized();
 
 }
