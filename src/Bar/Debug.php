@@ -27,6 +27,9 @@ class Debug implements IBarPanel {
 	/** @var bool */
 	private $hasDb;
 
+	/** @var Request */
+	private $request;
+
 	/**
 	 * @param bool $hasDb
 	 * @param Provider $provider
@@ -37,13 +40,16 @@ class Debug implements IBarPanel {
 		$this->provider = $provider;
 		$this->url = $request->getUrl();
 		$this->hasDb = $hasDb;
+		$this->request = $request;
 
 		if ($this->url->getQueryParameter('debug-import-parameters')) {
 			$provider->import();
+			$this->redirectBack();
 		}
 
 		if ($this->url->getQueryParameter('debug-parameters-cache')) {
 			$provider->cleanParametersCache();
+			$this->redirectBack();
 		}
 	}
 
@@ -117,6 +123,16 @@ class Debug implements IBarPanel {
 			return ob_get_clean();
 		} else {
 			return (string) $parameter;
+		}
+	}
+
+	private function redirectBack() {
+		$referrer = $this->request->getReferer();
+		$current = $this->request->getUrl();
+
+		if ($referrer && !$referrer->isEqual($current)) {
+			header('Location: ' . $referrer);
+			exit;
 		}
 	}
 
