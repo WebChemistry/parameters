@@ -28,7 +28,7 @@ class Doctrine extends Object implements IDatabase {
 	public function getPairs() {
 		$return = [];
 		foreach ($this->findAll() as $row) {
-			$return[$row->getContent()] = $row->getContent();
+			$return[$row->getId()] = $row->getContent();
 		}
 
 		return $return;
